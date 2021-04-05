@@ -17,13 +17,13 @@ jobs:
         id: meta
         uses: crazy-max/ghaction-docker-meta@v2
         with:
-          images: ghcr.io/sb-im/skywalker
+          images: ghcr.io/sb-im/sphinx
           tags: |
             type=edge,prefix=broadcast-
-            type=ref,,prefix=broadcast-,event=branch
-            type=ref,,prefix=broadcast-,event=pr
+            type=ref,prefix=broadcast-,event=branch
+            type=ref,prefix=broadcast-,event=pr
             type=semver,prefix=broadcast-,pattern={{version}}
-            type=semver,,prefix=broadcast-,pattern={{major}}.{{minor}}
+            type=semver,prefix=broadcast-,pattern={{major}}.{{minor}}
             type=sha,prefix=broadcast-
           flavor: |
             latest=true
@@ -51,7 +51,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           ssh: github=ssh-key
-          platforms: linux/amd64
           file: docker/Dockerfile.broadcast
           push: true
           tags: ${{ steps.meta.outputs.tags }}
