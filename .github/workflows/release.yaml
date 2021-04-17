@@ -22,6 +22,7 @@ jobs:
         run: |
           git config --global url."git@github.com:".insteadOf "https://github.com/";
           go env -w GOPRIVATE="github.com/SB-IM";
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
