@@ -18,6 +18,7 @@
 
     let answered = false
     let candidates = []
+    let pendingCandidates = []
     let pc = new RTCPeerConnection({
         iceServers: [
             {
@@ -49,18 +50,12 @@
             return
         }
 
-        let msg = {
-            event: "new-ice-candidate",
-            id: Date.now().toString(),
-            data: {
-                meta: {
-                    id: "fa955cc6881b4b45b49ffbf2d81e7223",
-                    track_source: 1,
-                },
-                candidate: JSON.stringify(e.candidate)
-            }
+        if (!pc.remoteDescription) {
+            pendingCandidates.push(e.candidate)
+            return
         }
-        conn.send(JSON.stringify(msg))
+
+        sendCandidate(e.candidate)
     }
 
     conn.addEventListener("close", ev => {
@@ -87,23 +82,11 @@
                 conn.send(JSON.stringify(msg))
             })
             .catch(console);
-        console.log("sent offer")
-    })
 
-    function addCandidate(str) {
-        let candidate
-        try {
-            candidate = JSON.parse(str)
-        } catch (e) {
-            return console.log('failed to parse candidate')
-        }
-        if (!candidate) {
-            return console.log('empty candidate')
-        }
-        pc.addIceCandidate(candidate)
-            .then(() => console.log("added a candidate"))
-            .catch(e => console.error(e))
-    }
+        console.log("sent offer")
+
+        pendingCandidates.forEach(c => sendCandidate(c))
+    })
 
     conn.addEventListener("message", ev => {
         console.log(`received message: ${ev.data}`)
@@ -141,6 +124,35 @@
         }
     })
 
+    function sendCandidate(candidate) {
+        let msg = {
+            event: "new-ice-candidate",
+            id: Date.now().toString(),
+            data: {
+                meta: {
+                    id: "fa955cc6881b4b45b49ffbf2d81e7223",
+                    track_source: 1,
+                },
+                candidate: JSON.stringify(candidate)
+            }
+        }
+        conn.send(JSON.stringify(msg))
+    }
+
+    function addCandidate(str) {
+        let candidate
+        try {
+            candidate = JSON.parse(str)
+        } catch (e) {
+            return console.log('failed to parse candidate')
+        }
+        if (!candidate) {
+            return console.log('empty candidate')
+        }
+        pc.addIceCandidate(candidate)
+            .then(() => console.log("added a candidate"))
+            .catch(e => console.error(e))
+    }
 </script>
 
 </html>
